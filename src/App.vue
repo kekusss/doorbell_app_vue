@@ -2,7 +2,11 @@
   <div id="app">
     <div id="nav">
       <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+      <router-link to="/about">About</router-link> |
+      <router-link v-show="isLoggedIn" to="/dashboard">Dashboard</router-link> |
+      <router-link v-show="!isLoggedIn" to="/login">Login</router-link> |
+      <router-link v-show="!isLoggedIn" to="/register">Register</router-link> |
+      <a v-show="isLoggedIn" href="#" @click="logOut">LogOut</a>
     </div>
     <router-view/>
   </div>
@@ -30,3 +34,26 @@
   }
 }
 </style>
+
+<script>
+
+
+export default {
+  name: 'App',
+  computed: {
+    isLoggedIn() {
+      return this.$store.state.status.loggedIn;
+    },
+  },
+  methods: {
+    logOut() {
+      this.$store.dispatch('logout').then(
+          () => {
+            this.$router.push('/');
+          },
+      );
+    },
+  }
+
+};
+</script>
