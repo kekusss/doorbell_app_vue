@@ -1,36 +1,75 @@
 <template>
-  <div>
-    You are logged in
-
-    <div>
-      <iframe src="https://www.rmp-streaming.com/media/big-buck-bunny-360p.mp4" frameborder="0"></iframe>
-    </div>
-    <div>
-      <b-button type="danger" @click="sendOpenSignal">
-        Open door
-      </b-button>
-    </div>
+  <div class="login-page vh-90">
+    <b-container>
+      <b-row class="d-flex justify-content-center align-items-center my-5">
+        <b-col md="8" class="d-flex justify-content-center align-items-center">
+          <iframe width="640px" height="480px" :src="serverAddress + '/video'" frameborder="0"></iframe>
+        </b-col>
+      </b-row>
+      <b-row class="d-flex justify-content-center align-items-center">
+        <b-col md="8">
+          <b-button variant="success" md="2" class="col-md-4 my-2" @click="sendSignal('open')">
+            Open door
+          </b-button>
+          <b-button variant="danger" class="col-md-4 my-2" @click="sendSignal('close')">
+            Access denied
+          </b-button>
+        </b-col>
+      </b-row>
+    </b-container>
   </div>
-<!--  <b-container>-->
-<!--    <b-row>-->
-<!--      <b-alert>Yoy are logged in</b-alert>-->
-<!--    </b-row>-->
-<!--  </b-container>-->
 </template>
 
+<style>
+.vh-90{
+  height: 90vh;
+}
+
+iframe {
+  max-width: 100%;
+}
+</style>
+
 <script>
+
+import DbService from "../services/db.service";
+import AuthService from "../services/auth.service";
+import ApiService from "../services/api.service";
 
   export default {
     name: 'Dashboard',
     data() {
       return {
-        user: {email: null, password: null},
-        message: '',
+        serverAddress: null,
+        token: null,
       };
     },
+    created() {
+      const email = AuthService.getCurrentUser().email;
+      DbService.getDeviceData(email).then((data) => {
+
+        const token = data.secure_key;
+        let address = data.api_address
+        if (!address.includes("http", 0)) {
+          address = "https://" + data.api_address;
+        }
+
+        this.serverAddress = address;
+        this.token = token;
+      })
+    },
     methods: {
-      sendOpenSignal(){
-        alert('opened');
+      sendSignal(action){
+          const api = ApiService.getInstance(this.serverAddress, this.token);
+
+          api.get('index.php/api/entrance/' + action)
+            .then(response => {
+              console.log(response);
+              if (response.data) {
+                alert('Wykonano pomyślnie: ' + action);
+              }
+              return response.data;
+            })
       }
     }
   };

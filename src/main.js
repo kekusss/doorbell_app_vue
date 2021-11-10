@@ -6,16 +6,33 @@ import store from './store'
 import Vuex from "vuex";
 import VeeValidate, { Validator } from "vee-validate";
 import pl from "vee-validate/dist/locale/pl";
+import "bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import { library } from "@fortawesome/fontawesome-svg-core";
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
+import { getToken, onMessage, getMessaging } from "firebase/messaging";
+import wb from "./registerServiceWorker";
+import {
+  faHome,
+  faSignInAlt,
+  faSignOutAlt,
+  faUser,
+  faUserPlus,
+  faKey,
+  faAt,
+  faUserCircle,
+} from "@fortawesome/free-solid-svg-icons";
+
+library.add(faHome, faUser, faUserPlus, faSignInAlt, faSignOutAlt, faKey, faAt, faUserCircle);
 
 Vue.config.productionTip = false
 Vue.use(Vuex);
-Vue.use(VeeValidate);
 Vue.component("font-awesome-icon", FontAwesomeIcon);
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -25,6 +42,9 @@ Vue.use(VeeValidate, {
   inject: true,
   fieldsBagName: "veeFields"
 });
+Vue.use(VeeValidate);
+Vue.prototype.$workbox = wb;
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyDsYrW7QwfgBFrEB62GCEXFg2MzPvEkjQQ",
@@ -36,49 +56,86 @@ const firebaseConfig = {
   appId: "1:926368001658:web:ff22bc1ba58e3ea81d15c3",
   measurementId: "G-H9S9W0V41B"
 };
+
 const firebaseApp = initializeApp(firebaseConfig);
 const analytics = getAnalytics(firebaseApp);
 const auth = getAuth();
 const database = getDatabase(firebaseApp);
+const messaging = getMessaging();
 
 Vue.use(firebaseApp);
 Vue.use(analytics);
 Vue.use(auth);
 Vue.use(database);
-
-
-import { getMessaging, onMessage } from "firebase/messaging";
-const messaging = getMessaging();
-
-console.log(messaging);
-onMessage(messaging, (payload) => {
-  console.log('Message received. ', payload);
-});
-
-self.addEventListener('notificationclose', event => {
-    const notification = event.notification;
-    const primaryKey = notification.data.primaryKey;
-
-    console.log('Closed notification: ' + primaryKey);
-});
-
-self.addEventListener('notificationclick', event => {
-    const notification = event.notification;
-    const primaryKey = notification.data.primaryKey;
-    const action = event.action;
-  console.log(primaryKey, action);
-    if (action === 'close') {
-        notification.close();
-    } else {
-        this.$router.push('/siema');
-    }
-
-    // TODO 5.3 - close all notifications when one is clicked
-
-});
+Vue.use(messaging);
 
 new Vue({
   store,
   router,
   render: h => h(App)
 }).$mount('#app')
+
+getToken(messaging).then((currentToken) => {
+  if (currentToken) {
+    console.log(currentToken);
+  } else {
+    console.log('No Instance ID token available. Request permission to generate one.');
+
+    Notification.requestPermission(function(status) {
+      console.log('Notification permission status:', status);
+    });
+  }
+
+  /** When app is active */
+  onMessage(messaging, (payload) => {
+    console.log(payload);
+
+    navigator.serviceWorker.getRegistration().then(function(reg) {
+      console.log('[firebase-messaging-sw.js] Received background message ', payload);
+
+      const notificationTitle = 'Someone is ringing at the door';
+      const notificationOptions = {
+        body: 'You can see who it is and open the door..',
+        icon: '/firebase-logo.png',
+        vibrate: [100, 50, 100, 50, 100, 50, 100],
+        data: {
+          dateOfArrival: Date.now(),
+          primaryKey: 1
+        },
+        actions: [
+          {action: 'open', title: 'Open door',
+            icon: 'images/checkmark.png'},
+          {action: 'deny', title: 'Deny access',
+            icon: 'images/xmark.png'},
+        ]
+      };
+
+      reg.showNotification(notificationTitle, notificationOptions);
+    });
+
+  }, e => {
+    console.log(e)
+  })
+})
+
+if (Notification.permission === "blocked") {
+  alert('You have blocked notifications, you will not be able to receive a signal when someone rings the doorbell.')
+}
+
+navigator.serviceWorker.addEventListener('notificationclick', function(e) {
+  var notification = e.notification;
+  var action = e.action;
+  console.log(action)
+  // @todo nie działą
+  if (action === 'open') {
+    alert('dupa');
+    notification.close();
+  } else if (action == 'deny'){
+
+    notification.close();
+  }
+  else {
+
+    notification.close();
+  }
+});

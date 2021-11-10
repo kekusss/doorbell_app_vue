@@ -1,44 +1,94 @@
 <template>
-  <div class="container-login">
-    <div class="left-login">
-      <div class="header-login">
-        <h1>Sign in to yukChat!</h1>
-      </div>
-      <div class="form-login">
-        <div class="form-email">
-          <input id="email" type="text" v-model="user.email" placeholder="Your email">
-        </div>
-        <div class="form-password">
-          <input id="password" type="password" v-model="user.password" placeholder="Your password">
-        </div>
-      </div>
-      <div class="button-register">
-        <p>Forgot Password</p>
-      </div>
-      <div class="button-login">
-        <button @click="handleLogin">SIGN IN</button>
-      </div>
-    </div>
-    <div class="right-login">
-      <div class="header-right">
-        <h1>Hello, Friend!</h1>
-      </div>
-      <div class="body-right">
-        <p>Enter your personal details <br>
-          and start journey with us
-        </p>
-      </div>
-      <div class="button-register">
-        <button><router-link class="router-link"
-                             to="/register">SIGN UP</router-link></button>
-      </div>
-    </div>
+
+  <div class="login-page vh-90">
+    <b-container class="container py-5 h-100">
+      <b-row class="d-flex justify-content-center align-items-center h-100">
+        <b-card bg-variant="light"  class="mt-5 col-md-6">
+
+          <font-awesome-icon size="9x" class="my-3" icon="user-circle"/>
+          <h3 class="mt-3">WELCOME</h3>
+          <p>Sign in by entering the information below</p>
+          <b-card-body>
+            <b-form @submit.prevent="handleLogin">
+              <b-form-group>
+                <b-input-group  class="mb-2">
+                  <b-input-group-prepend>
+                    <b-input-group-text>
+                      <font-awesome-icon icon="at"/>
+                    </b-input-group-text>
+                  </b-input-group-prepend>
+                  <b-form-input
+                      type="text"
+                      v-model="user.email"
+                      v-validate="'required|email'"
+                      data-vv-as="'email'"
+                      name="email"
+                      placeholder="Your email"
+                      id="email"
+                  ></b-form-input>
+                </b-input-group>
+                <b-alert
+                    :show="errors.has('email')"
+                    variant="danger"
+                >{{ errors.first('email') }}
+                </b-alert>
+              </b-form-group>
+
+              <b-form-group>
+                <b-input-group  class="mb-2">
+                  <b-input-group-prepend>
+                    <b-input-group-text>
+                      <font-awesome-icon icon="key"/>
+                    </b-input-group-text>
+                  </b-input-group-prepend>
+                  <b-form-input
+                      v-model="user.password"
+                      v-validate="'required'"
+                      data-vv-as="'password'"
+                      name="password"
+                      type="password"
+                      placeholder="Password"
+                  ></b-form-input>
+                </b-input-group>
+                <b-alert
+                    :show="errors.has('password')"
+                    variant="danger"
+                >{{ errors.first('password') }}
+                </b-alert>
+              </b-form-group>
+
+              <b-form-group class="mt-4">
+                <b-button block type="sumbit" variant="info">
+                  <span>Sign In</span>
+                </b-button>
+              </b-form-group>
+
+              <b-form-group>
+                <b-alert
+                    :show="message.length > 0"
+                    variant="danger"
+                >{{ message }}
+                </b-alert>
+              </b-form-group>
+            </b-form>
+          </b-card-body>
+        </b-card>
+      </b-row>
+    </b-container>
+
   </div>
 </template>
+
+<style>
+  .vh-90{
+    height: 90vh;
+  }
+</style>
 
 <script>
 
 import DbService from "../services/db.service";
+import { getToken, getMessaging } from "firebase/messaging";
 
 export default {
   name: 'Login',
@@ -50,9 +100,21 @@ export default {
   },
   methods: {
     handleLogin() {
+      let token = null;
+
+      getToken(getMessaging()).then((currentToken) => {
+        if (currentToken) {
+          token = currentToken;
+        }
+        else {
+          // Show permission request.
+          console.log('No Instance ID token available. Request permission to generate one.');
+        }
+      });
+
       this.$store.dispatch('login', {email: this.user.email, password: this.user.password}).then(
           (user) => {
-            DbService.writeUserData(user.email, user.uid, 'token').then(() => {
+            DbService.writeUserData(user.email, user.uid, token).then(() => {
               console.log("Created user data successfully!");
               this.$router.push('/dashboard');
             })
@@ -63,7 +125,6 @@ export default {
           },
           (error) => {
             this.message = error;
-            alert(this.message);
           }
       );
     }
