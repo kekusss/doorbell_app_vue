@@ -76,9 +76,7 @@ new Vue({
 }).$mount('#app')
 
 getToken(messaging).then((currentToken) => {
-  if (currentToken) {
-    console.log(currentToken);
-  } else {
+  if (!currentToken) {
     console.log('No Instance ID token available. Request permission to generate one.');
 
     Notification.requestPermission(function(status) {
@@ -88,33 +86,33 @@ getToken(messaging).then((currentToken) => {
 
   /** When app is active */
   onMessage(messaging, (payload) => {
-    console.log(payload);
-
-    navigator.serviceWorker.getRegistration().then(function(reg) {
-      console.log('[firebase-messaging-sw.js] Received background message ', payload);
+    navigator.serviceWorker.getRegistration().then(function (reg) {
+      console.log('[firebase-messaging-sw.js] Received normal message ', payload);
 
       const notificationTitle = 'Someone is ringing at the door';
       const notificationOptions = {
         body: 'You can see who it is and open the door..',
-        icon: '/firebase-logo.png',
+        icon: '/img/logo.png',
         vibrate: [100, 50, 100, 50, 100, 50, 100],
         data: {
           dateOfArrival: Date.now(),
           primaryKey: 1
         },
         actions: [
-          {action: 'open', title: 'Open door',
-            icon: 'images/checkmark.png'},
-          {action: 'deny', title: 'Deny access',
-            icon: 'images/xmark.png'},
+          {
+            action: 'open', title: 'Open door',
+            icon: 'img/unlock.png'
+          },
+          {
+            action: 'deny', title: 'Deny access',
+            icon: 'img/lock.png'
+          },
         ]
       };
 
       reg.showNotification(notificationTitle, notificationOptions);
     });
 
-  }, e => {
-    console.log(e)
   })
 })
 
@@ -125,13 +123,14 @@ if (Notification.permission === "blocked") {
 navigator.serviceWorker.addEventListener('notificationclick', function(e) {
   var notification = e.notification;
   var action = e.action;
-  console.log(action)
-  // @todo nie działą
+  console.log(action + 'tututuutututu')
+
   if (action === 'open') {
+    console.log('aaa');
     alert('dupa');
     notification.close();
   } else if (action == 'deny'){
-
+    console.log('bb');
     notification.close();
   }
   else {

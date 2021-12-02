@@ -36,7 +36,7 @@ onBackgroundMessage(messaging, (payload) => {
     const notificationTitle = 'Someone is ringing at the door';
     const notificationOptions = {
         body: 'You can see who it is and open the door..',
-        icon: '/firebase-logo.png',
+        icon: '/img/logo.png',
         vibrate: [100, 50, 100, 50, 100, 50, 100],
         data: {
             dateOfArrival: Date.now(),
@@ -44,9 +44,9 @@ onBackgroundMessage(messaging, (payload) => {
         },
         actions: [
             {action: 'open', title: 'Open door',
-                icon: 'images/checkmark.png'},
+                icon: '/img/unlock.png'},
             {action: 'deny', title: 'Deny access',
-                icon: 'images/xmark.png'},
+                icon: '/img/lock.png'},
         ]
     };
     self.registration.showNotification(notificationTitle, notificationOptions);

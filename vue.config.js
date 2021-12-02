@@ -5,9 +5,9 @@ module.exports = {
 
     configureWebpack: {
         plugins: [
-            // new InjectManifest({
-            //     swSrc: './src/firebase-messaging-sw.js',
-            // })
+            new InjectManifest({
+                swSrc: './src/firebase-messaging-sw.js',
+            })
         ]
     },
 }

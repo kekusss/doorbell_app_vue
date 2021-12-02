@@ -41,6 +41,15 @@ const routes = [
     meta: {
       authRequired: true,
     },
+  },
+  {
+    path: '/events',
+    name: 'Event Log',
+    component: () =>
+        import(/* webpackChunkName: "log" */ '../views/Log.vue'),
+    meta: {
+      authRequired: true,
+    },
   }
 ]
 

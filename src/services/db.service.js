@@ -28,6 +28,12 @@ class DbService{
         });
     }
 
+    getLogsRef(email){
+        const key = MD5(email).toString();
+        const logsRef = ref(this.db, 'logs/' + key)
+        return logsRef
+    }
+
     pushUserData(name, email, imageUrl){
         const newData = {
             username: name,

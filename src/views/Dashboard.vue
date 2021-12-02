@@ -3,7 +3,7 @@
     <b-container>
       <b-row class="d-flex justify-content-center align-items-center my-5">
         <b-col md="8" class="d-flex justify-content-center align-items-center">
-          <iframe width="640px" height="480px" :src="serverAddress + '/video'" frameborder="0"></iframe>
+          <img class="camera"  :src="serverAddress + '/camera'">
         </b-col>
       </b-row>
       <b-row class="d-flex justify-content-center align-items-center">
@@ -25,7 +25,7 @@
   height: 90vh;
 }
 
-iframe {
+img.camera {
   max-width: 100%;
 }
 </style>
@@ -33,7 +33,6 @@ iframe {
 <script>
 
 import DbService from "../services/db.service";
-import AuthService from "../services/auth.service";
 import ApiService from "../services/api.service";
 
   export default {
@@ -45,7 +44,7 @@ import ApiService from "../services/api.service";
       };
     },
     created() {
-      const email = AuthService.getCurrentUser().email;
+      const email = this.$store.state.user.email;
       DbService.getDeviceData(email).then((data) => {
 
         const token = data.secure_key;

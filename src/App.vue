@@ -13,6 +13,7 @@
           <b-navbar-nav>
             <b-nav-item to="/about">About</b-nav-item>
             <b-nav-item v-show="isLoggedIn" to="/dashboard">Dashboard</b-nav-item>
+            <b-nav-item v-show="isLoggedIn" to="/events">Event Log</b-nav-item>
           </b-navbar-nav>
 
           <!-- Right aligned nav items -->
@@ -30,9 +31,8 @@
               <!-- Using 'button-content' slot -->
               <template #button-content>
                 <font-awesome-icon icon="user"/>
-                <em class="ml-3 mr-2">User</em>
+                <em class="ml-3 mr-2">{{ email }}</em>
               </template>
-              <b-dropdown-item href="#">Profile</b-dropdown-item>
               <b-dropdown-item v-show="isLoggedIn" href="#" @click="logOut">
                 <font-awesome-icon icon="sign-out-alt"/>
                 Sign Out
@@ -94,6 +94,11 @@
 
 export default {
   name: 'App',
+  data() {
+    return {
+      email: this.$store.state.user.email
+    }
+  },
   computed: {
     isLoggedIn() {
       return this.$store.state.status.loggedIn;
